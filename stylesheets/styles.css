@@ -224,7 +224,7 @@ header ul a strong {
 }
 
 section {
-  width:500px;
+  width:550px;
   float:right;
   padding-bottom:50px;
 }
@@ -246,6 +246,15 @@ footer {
   position:fixed;
   bottom:50px;
   -webkit-font-smoothing:subpixel-antialiased;
+}
+
+@media print, screen and (max-height: 400px) {
+  footer {
+    width:270px;
+    float:left;
+    top: 250px;
+    -webkit-font-smoothing:subpixel-antialiased;
+  }
 }
 
 @media print, screen and (max-width: 960px) {

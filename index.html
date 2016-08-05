@@ -7,10 +7,13 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
+    <style type="text/css">
+		.node.selected circle,.node.selected path{stroke-width:5px;stroke-dasharray:2}.node{stroke-width:0}.link{stroke-width:2;}
+		.link,.node{cursor:crosshair}body{font:13px sans-serif;width:960px;height:500px}tr.selected{background-color:#f5f5f5}.link.selected{stroke-dasharray:2}
+		.dragline{stroke:#999;pointer-events:none;stroke-width:0;visibility:hidden}.dragline.active{stroke-width:2;visibility:visible}
+		</style>
     <meta name="viewport" content="width=device-width">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
   </head>
   <body>
     <div class="wrapper">
@@ -28,14 +31,731 @@
         </ul>
       </header>
       <section>
-        <p>123</p>
+        <svg id="chart" width="750" height="600"></svg>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/roman-bandurin">roman-bandurin</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript">
+    "use strict";
     
+    /*var game_model = (function(){
+      //инициализация игры, типы и генерация колоний элементов в списке
+      //игра, а также сценарий, можно изменить его, сделать другие правила
+      //здесь же добавление и удаление нескольких элементов
+      //сохранение и восстановление списка
+      //точки наблюдения, по которым центрируется экран
+      //а также выделение узлов и связей, а также для каждого из игроков
+    })(),
+    
+    game_controller = (function(){
+      //не факт, что будет нужен, ведь это не d3
+    })(),
+    
+    force_model = {
+      nodes: (function(){
+        var arr = [], //массив узлов
+          last = -1; //длина массива
+        
+        function add(obj){
+          arr.push(obj);
+          last++;
+        }
+        
+        function rem(index){
+          if(index < last){
+            arr[last].index = index;
+            Object.keys(arr[last].links).forEach(function(key){
+              arr[key>>0].links[index] = arr[last].links[key];
+              delete arr[key>>0].links[last];
+            });
+            
+            arr[index].index = last;
+            Object.keys(arr[index].links).forEach(function(key){
+              delete arr[key>>0].links[index];
+            });
+            
+            var swap = arr[index];
+            arr[index] = arr[last];
+            arr[last] = swap;
+          }
+          
+          arr.pop();
+          last--;
+        }
+        
+        //вернуть функцию
+      })(),
+      links: (function(){
+        arr = [], //массив связей
+        last = -1;
+        
+        function add(obj){
+          arr.push(obj);
+          last++;
+        }
+        
+        function rem(si, ti){
+      
+          var toSplice = null;
+          if((!!si || si === 0) && (!!ti || ti === 0)){
+            toSplice = [force_model.nodes[si].links[ti]];
+          } else if(!!si || si === 0){
+            toSplice = values(force_model.nodes[si].links);
+          } else if(!!ti || ti === 0){
+            toSplice = values(force_model.nodes[ti].links);
+          }
+          
+          toSplice.sort(function(a, b){return b - a});
+          
+          toSplice.forEach(function(index){
+            links[last].source.links[links[last].target.index] = index;
+            links[last].target.links[links[last].source.index] = index;
+            
+            delete links[index].source.links[links[index].target.index];
+            delete links[index].target.links[links[index].source.index];
+            
+            var swap = links[index];
+            links[index] = links[last];
+            links[last] = swap;
+            
+            links.pop();
+            last--;
+          });
+        }
+        
+        //вернуть функцию
+      })()
+    },
+    
+    force_controller = (function(){
+      //события связывания, перемещения узлов
+    })(),
+    
+    force_view = {
+      nodes: (function(){
+        //события mousedown, mouseup, mousemove
+        var arr = [], //массив узлов
+          last = -1;
+        
+        function add(obj){
+        
+        },
+        function rem(index){
+          //удаление - оно как обновление - для каждого из аргументов - поменять местами с последним, последний удалить, извещать по мере прогресса
+          node[0][index].index = last;
+          node[0][last].index = index;
+          
+          swap = node[0][index];
+          node[0][index] = node[0][last];
+          node[0][last] = swap;
+          
+          nodes.pop();
+        }
+      })(),
+      links = (function{
+        arr: [], //массив связей
+        add: function(){
+          
+        },
+        rem: function(){
+          swap = link[0][index];
+          link[0][index] = link[0][last];
+          link[0][last] = swap;
+        }
+      }
+    })(),
+    
+    table_view = (function(){
+      
+    })(),
+    
+    bundle_view = (function(){
+      
+    })();
+    
+    force_model.nodes.add({index:0, type:0});*/
+    
+    //модель - это массивы, контроллер - это d3, представление - это элементы svg
+    
+    //***D3 инциализация**************************************************
+    //здесь происходит инициализация контроллера и навешивание обрабочиков
+    //также здесь происходит инициализация массива, который нужен для force
+    // init svg
+    
+    //получение массива по некоторому алгоритму
+    /*var arr=[{index:0,type:0}],arr2=[];var rand=new Uint8Array(2);
+    for(var i=1;i<=100;i++){window.crypto.getRandomValues(rand);rand[0]=rand[0]/(255/5)>>0;rand[1]=rand[1]/(255/5)>>0;if(rand[0]<=1){arr.push({index:i,type:4});var j=[1,i];while(!!j[0]&&i-j[1]<25){window.crypto.getRandomValues(rand);rand[1]=rand[1]/(255/5)>>0;if(rand[1]>2){i+=1;arr.push({index:i,type:4});arr2.push({source:arr[j[j[0]]],target:arr[i]});j.push(i);j[0]+=1}else if(i-j[1]>1){j.pop();j[0]-=1;if(j[0]>0)if(rand[1]==2){i+=1;arr.push({index:i,type:11});arr2.push({source:arr[j[j[0]]],target:arr[i]})}else if(rand[1]==
+    1){i+=1;arr.push({index:i,type:6});arr2.push({source:arr[j[j[0]]],target:arr[i]})}}}}else if(rand[0]==1&&0);else if(rand[0]==2){arr.push({index:i,type:8},{index:i+1,type:8},{index:i+2,type:8},{index:i+3,type:8},{index:i+4,type:8},{index:i+5,type:8});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i+1],target:arr[i+2]},{source:arr[i+2],target:arr[i+3]},{source:arr[i+3],target:arr[i+4]},{source:arr[i+4],target:arr[i+5]});i+=5}else if(rand[0]==3){arr.push({index:i,type:10});switch(rand[1]){case 4:i+=
+    1;arr.push({index:i,type:15},{index:i+1,type:10},{index:i+2,type:10},{index:i+3,type:10},{index:i+4,type:10},{index:i+5,type:10},{index:i+6,type:10});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i],target:arr[i+2]},{source:arr[i],target:arr[i+3]},{source:arr[i],target:arr[i+4]},{source:arr[i],target:arr[i+5]},{source:arr[i],target:arr[i+6]},{source:arr[i+1],target:arr[i+2]},{source:arr[i+2],target:arr[i+3]},{source:arr[i+3],target:arr[i+4]},{source:arr[i+4],target:arr[i+5]},{source:arr[i+
+    5],target:arr[i+6]},{source:arr[i+6],target:arr[i+1]});i+=6;break;case 3:i+=1;arr.push({index:i,type:14},{index:i+1,type:10},{index:i+2,type:10},{index:i+3,type:10},{index:i+4,type:10},{index:i+5,type:10});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i],target:arr[i+2]},{source:arr[i],target:arr[i+3]},{source:arr[i],target:arr[i+4]},{source:arr[i],target:arr[i+5]},{source:arr[i+1],target:arr[i+2]},{source:arr[i+2],target:arr[i+3]},{source:arr[i+3],target:arr[i+4]},{source:arr[i+4],target:arr[i+
+    5]},{source:arr[i+5],target:arr[i+1]});i+=5;break;case 2:i+=1;arr.push({index:i,type:13},{index:i+1,type:10},{index:i+2,type:10},{index:i+3,type:10},{index:i+4,type:10});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i],target:arr[i+2]},{source:arr[i],target:arr[i+3]},{source:arr[i],target:arr[i+4]},{source:arr[i+1],target:arr[i+2]},{source:arr[i+2],target:arr[i+3]},{source:arr[i+3],target:arr[i+4]},{source:arr[i+4],target:arr[i+1]});i+=4;break;case 1:i+=1;arr.push({index:i,type:12},{index:i+
+    1,type:10},{index:i+2,type:10},{index:i+3,type:10},{index:i+4,type:10});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i],target:arr[i+2]},{source:arr[i],target:arr[i+3]},{source:arr[i],target:arr[i+4]},{source:arr[i+1],target:arr[i+2]},{source:arr[i+2],target:arr[i+3]},{source:arr[i+3],target:arr[i+4]},{source:arr[i+4],target:arr[i+1]});i+=4;break;default:i+=1;arr.push({index:i,type:10},{index:i+1,type:10},{index:i+2,type:10});arr2.push({source:arr[i],target:arr[i+1]},{source:arr[i+1],target:arr[i+
+    2]},{source:arr[i+2],target:arr[i]});i+=2}}else{rand[0]=[4,6,10,10,11][rand[0]];arr.push({index:i,type:rand[0]})}};*/
+    
+    //данные об узлах и их связях - модель
+    var model = {
+      nodes: [{index:0,type:0},{index:1,type:10},{index:2,type:13},{index:3,type:10},{index:4,type:10},{index:5,type:10},{index:6,type:10},{index:7,type:8},{index:8,type:8},{index:9,type:8},{index:10,type:8},{index:11,type:8},{index:12,type:8},{index:13,type:8},{index:14,type:8},{index:15,type:8},{index:16,type:8},{index:17,type:8},{index:18,type:8},{index:19,type:10},{index:20,type:14},{index:21,type:10},{index:22,type:10},{index:23,type:10},{index:24,type:10},{index:25,type:10},{index:26,type:4},{index:27,type:4},{index:28,type:4},{index:29,type:11},{index:30,type:4},{index:31,type:4},{index:32,type:11},{index:33,type:4},{index:34,type:11},{index:35,type:11},{index:36,type:8},{index:37,type:8},{index:38,type:8},{index:39,type:8},{index:40,type:8},{index:41,type:8},{index:42,type:8},{index:43,type:8},{index:44,type:8},{index:45,type:8},{index:46,type:8},{index:47,type:8},{index:48,type:10},{index:49,type:13},{index:50,type:10},{index:51,type:10},{index:52,type:10},{index:53,type:10},{index:54,type:4},{index:55,type:4},{index:56,type:4},{index:57,type:4},{index:58,type:4},{index:59,type:4},{index:60,type:11},{index:61,type:4},{index:62,type:4},{index:63,type:11},{index:64,type:11},{index:65,type:4},{index:66,type:4},{index:67,type:4},{index:68,type:6},{index:69,type:4},{index:70,type:11},{index:71,type:4},{index:72,type:6},{index:73,type:11},{index:74,type:4},{index:75,type:11},{index:76,type:6},{index:77,type:11},{index:78,type:4},{index:79,type:4},{index:80,type:4},{index:81,type:4},{index:82,type:4},{index:83,type:6},{index:84,type:4},{index:85,type:4},{index:86,type:4},{index:87,type:4},{index:88,type:11},{index:89,type:4},{index:90,type:4},{index:91,type:4},{index:92,type:4},{index:93,type:4},{index:94,type:4},{index:95,type:6},{index:96,type:6},{index:97,type:11},{index:98,type:4},{index:99,type:4},{index:100,type:6},{index:101,type:4},{index:102,type:4},{index:103,type:11},{index:104,type:4},{index:105,type:4}],
+      links: [{source:2,target:3},{source:2,target:4},{source:2,target:5},{source:2,target:6},{source:3,target:4},{source:4,target:5},{source:5,target:6},{source:6,target:3},{source:7,target:8},{source:8,target:9},{source:9,target:10},{source:10,target:11},{source:11,target:12},{source:13,target:14},{source:14,target:15},{source:15,target:16},{source:0,target:17},{source:17,target:18},{source:20,target:21},{source:20,target:22},{source:20,target:23},{source:20,target:24},{source:20,target:25},{source:21,target:22},{source:22,target:23},{source:23,target:24},{source:24,target:25},{source:25,target:21},{source:26,target:27},{source:27,target:28},{source:27,target:29},{source:26,target:30},{source:30,target:31},{source:30,target:32},{source:30,target:33},{source:26,target:34},{source:36,target:37},{source:37,target:38},{source:38,target:39},{source:39,target:40},{source:40,target:41},{source:42,target:43},{source:43,target:44},{source:44,target:45},{source:45,target:46},{source:46,target:47},{source:49,target:50},{source:49,target:51},{source:49,target:52},{source:49,target:53},{source:50,target:51},{source:51,target:52},{source:52,target:53},{source:53,target:50},{source:54,target:55},{source:55,target:56},{source:56,target:57},{source:56,target:58},{source:58,target:59},{source:58,target:60},{source:58,target:61},{source:61,target:62},{source:61,target:63},{source:58,target:64},{source:58,target:65},{source:65,target:66},{source:66,target:67},{source:66,target:68},{source:66,target:69},{source:66,target:70},{source:66,target:71},{source:66,target:72},{source:65,target:73},{source:65,target:74},{source:65,target:75},{source:58,target:76},{source:56,target:77},{source:56,target:78},{source:78,target:79},{source:80,target:81},{source:81,target:82},{source:81,target:83},{source:81,target:84},{source:84,target:85},{source:84,target:86},{source:86,target:87},{source:86,target:88},{source:86,target:89},{source:89,target:90},{source:90,target:91},{source:91,target:92},{source:92,target:93},{source:93,target:94},{source:92,target:95},{source:90,target:96},{source:89,target:97},{source:86,target:98},{source:98,target:99},{source:98,target:100},{source:98,target:101},{source:86,target:102},{source:86,target:103},{source:86,target:104},{source:104,target:105}],
+      selected: {node: null, link: null}, //выбранный элемент
+      next: {node: null, link: null}, //следующий выбранный элемент
+      dragline: {active: false, x1: 0, y1: 0, x2: 0, y2: 0}
+    }, view = {
+      window: d3.select(window)
+        .on("keydown", keydown),
+      chart: d3.select("#chart")
+        .attr("pointer-events", "all")
+        .on("mousemove", mousemove)
+        .on("mousedown", mousedown)
+        .on("mouseup", mouseup),
+      force: d3.select("#chart").append("svg:g").classed("force", true),
+      nodes: d3.select("#chart g.force").selectAll(".node"),
+      links: d3.select("#chart g.force").selectAll(".link"),
+      dragline: d3.select("#chart g.force").append("line").classed("dragline", true)
+    };
+    
+    model.links.forEach(function(link){
+      link.source = model.nodes[link.source];
+      link.target = model.nodes[link.target];
+    });
+    
+    function dragline(){
+      for(var i = 0; i < arguments.length; i++) switch(i){
+        case 0: model.dragline.active = (arguments[i] !== null ? arguments[i] : model.dragline.active); break;
+        case 1: model.dragline.x1 = (arguments[i] !== null ? arguments[i] : model.dragline.x1); break;
+        case 2: model.dragline.y1 = (arguments[i] !== null ? arguments[i] : model.dragline.y1); break;
+        case 3: model.dragline.x2 = (arguments[i] !== null ? arguments[i] : model.dragline.x2); break;
+        case 4: model.dragline.y2 = (arguments[i] !== null ? arguments[i] : model.dragline.y2); break;
+      }
+      
+      view.dragline
+        .classed("active", model.dragline.active)
+        .attr("x1", model.dragline.x1)
+        .attr("y1", model.dragline.y1)
+        .attr("x2", model.dragline.x2)
+        .attr("y2", model.dragline.y2);
+    }
+    
+    // init force layout
+    //здесь надо ввести функции так, чтобы значение заряда, его дистанции и длина связи были изменяемыми
+    //и были бы зависимыми от модели, пока что это целиком представление
+    var force = d3.layout.force()
+    .size([view.chart.attr("width")>>0, view.chart.attr("height")>>0])
+    .nodes(model.nodes) // initialize with a single node
+    .links(model.links)
+    .gravity(0.15)
+    .friction(0.9)
+    .charge(-140)
+    //.charge(function(n2){ return n2.type == 13 || n2.type == 14 || n2.type == 15 ? -1600 : -140; })
+    .chargeDistance(700)
+    //.linkStrength(function(l){ return l.source.type == 8 || l.target.type == 8 ? 0.1 : 1;})
+    .linkStrength(1)
+    //.linkDistance(function(l){ return l.source.type == 8 || l.target.type == 8 ? 60 : 50; })
+    .linkDistance(50)
+    .on("tick", tick);
+    
+    //*****значения модели************************************************
+    
+    //когда в представлении делаем pan, в d3-контроллере это обрабатывается, здесь в модели - значение pan
+    var pan = {'active': false, x:0, y:0 };	//panning
+    
+    //функции разворчивания матрицы для отображения связей между узлами(нужно в модели)
+    /*var adj = []; function adj_n(i, j){ var r = Math.max(i, j); return r * r + i - j + r; };
+    function adj_i(n2){ var r = Math.sqrt(n2)>>>0; return Math.min(n2 - r * r, r); };
+    function adj_j(n2){ var r = Math.sqrt(n2)>>>0; return Math.min(r * (r + 2) - n2, r); };
+    for(var i = arr.length * arr.length - 1; i >= 0; i--) adj[i] = null;
+    arr2.forEach(function(a, i, arr){ adj[adj_n(a.source.index, a.target_index)] = i; adj[adj_n(a.target_index, a.source.index)] = -i; });*/
+    
+    //*****значения представления*********************************************
+    // get layout properties
+    //массив узлов и связей в svg - представления
+    
+    
+    //******настройки игры***************************************************
+    //в настройках игры есть указания для контроллера как состыковать модель и представление
+    //например для значений типа указан цвет - в представлении и будет этот цвет
+    
+    //справочник - номер типа, название типа, оформление(цвет, иконка)
+    var dic = [
+      ['Хижина', '#000'],			//0
+      ['Поместье', '#000'],		//1
+      ['Замок', '#000'],			//2
+      ['Бревно', '#9f7160'],		//3
+      ['Дерево', '#6a804d'],		//4
+      ['Лесопилка', '#6a804d'],	//5
+      ['Дичь', '#ff9b9b'],		//6
+      ['Хлев', '#d59090'],		//7
+      ['Ручей', '#bbdefb'],		//8
+      ['Колодец', '#42a5f5'],		//9
+      ['Камень', '#9e9e9e'],		//10
+      ['Грибы', '#efb37e'],		//11
+      ['Медь', '#902909'],		//12
+      ['Золото', '#ebcd47'],		//13
+      ['Железо', '#607d8b'],		//14
+      ['Углерод', '#37474f']  	//15
+    ];
+    
+    //связи - по типу, от меньшего для большего, или функция, которая возвращает возможность
+    //если после двух уровней - 0, то там содержится информация о связи из двух элементов, если не ноль,
+    //то информация об аккумулировании связи с участием начального элемента в дереве,
+    //а также информация о внедрении этого элемента в связь
+    var linktypes = {
+      0: {
+        0: true,
+        1: true,
+        2: true,
+        4: true,
+        6: true,
+        8: true,
+        10: true
+      },
+      4: { 4: true },
+      6: { 6: true },
+      8: { 8: true },
+      10: {
+        10: true,
+        12: true,
+        13: true,
+        14: true,
+        15: true
+      }
+    };
+    
+    //служебные функции
+    function get_text(d){ return dic[d.type][0]; }
+    function get_color(d){ return dic[d.type][1]; }
+    function values(obj){ return Object.keys(obj).map(function(key){ return obj[key]; }); }
+    function dist(a, b){ return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2)); }
+    
+    //*****функции модели*************************************************
+    //данные функции изменяют модель, функции работают с данными и получают и изменяют данные
+    
+    //надо сделать дерево с корнем от текущего элемента, в котором решения по обходу принимаются функцией от текущего узла(поначалу всегда)
+    //объект из индексов узлов(они точно универсальны), в котором массив из потомков(поначалу все соединенные с узлом), родителей(если связный узел предлагает текущему обход), соседей(если связный узел предлагает обход и имеет общего родителя)
+    //это дерево - объект, в котором ключи-индексы узлов, значения - объект из пункты выше(индекс родителя? - может быть как несколько родителей, так и несколько потомков)
+    //функция reduce - будет собирать массив, а также некоторая другая функция будет проверять каждый элемент и считать некоторые итоговые значения(поначалу количество по типу)
+    function accumulate(root, level, parent, current, accumulator){
+      if(!accumulator) accumulator = {'4': 0, '6': 0, '8': 0, '11': 0, 'nodes':[]}
+      if(current.type == 4 && accumulator['4'] <= 2) { accumulator['4']++; accumulator['nodes'].push(current.index) }
+      if(current.type == 6 && accumulator['6'] <= 1) { accumulator['6']++; accumulator['nodes'].push(current.index) }
+      if(current.type == 8 && accumulator['8'] <= 2) { accumulator['8']++; accumulator['nodes'].push(current.index) }
+      if(current.type == 11 && accumulator['11'] <= 1) { accumulator['11']++; accumulator['nodes'].push(current.index) }
+      return accumulator;
+    }
+    
+    function descent(root, level, parent, current){
+      return root.type == 0 && level == 0 || root.type != 0;
+    }
+    
+    //по правильному дерево строит дерево, а еще должна быть функция, которая проходится по готовому дереву
+    function tree(d){
+      var prev_level = {}, current_level = {}, treeobj = {}, level = 0, cnt = 1, accumulator;
+      
+      treeobj[d.index] = {'children': {}, 'parent': {}, 'sibling': {}, 'level': level, 'node': d};
+      treeobj[d.index].children = Object.keys(d.links).reduce(function(n2, index){ n2[index] = index>>0; return n2; }, {});
+      prev_level[d.index] = treeobj[d.index];
+      
+      //применить функцию(где родитель неопределен) аккумулирования к начальному узлу(это и будет задавать начальное значение)
+      accumulator = accumulate(d, level, null, d, accumulator);
+      
+      while(!!cnt){
+        cnt = 0; level++;
+        Object.keys(prev_level).forEach(function(n1){
+          accumulator = Object.keys(prev_level[n1].children).reduce(function(accumulator, n2){
+            if(!treeobj[n2]){
+              treeobj[n2] = {'children': {}, 'parent': {}, 'sibling': {}, 'level': level, 'node': model.nodes[n2]};
+              
+              treeobj[n2].children = Object.keys(model.nodes[n2].links).reduce(function(n3, index){ n3[index] = index>>0; return n3; }, {});
+              delete treeobj[n2].children[n1];
+              treeobj[n2].parent[n1] = n1>>0;
+              
+              //решение по приему в current_level должна решать функция от нач_элемента, уровня, элемента_родителя и текущего элемента.
+              if(descent(d, level, model.nodes[n1], model.nodes[n2])){
+                current_level[n2] = treeobj[n2];
+                cnt++;
+              }
+              //здесь можно считать уникальные узлы
+              //пока что тут реализую функцию аккумулирования
+              //попробуем подсчитать количество дичи
+              accumulator = accumulate(d, level, model.nodes[n1], model.nodes[n2], accumulator);
+            } else if(!!treeobj[n2].children[n1]){
+              delete treeobj[n2].children[n1];
+              treeobj[n2].sibling[n1] = n1>>0;
+              
+              delete treeobj[n1].children[n2];
+              treeobj[n1].sibling[n2] = n2>>0;
+              
+            } else {
+              delete treeobj[n2].children[n2];
+              treeobj[n2].parent[n1] = n1>>0;
+            }
+            //вот здесь после прохода будет доступен treeobj[n2] (неуникально)
+            //применить к нему функцию от нач_элемента, уровня, одного_родителя_или_нескольких и текущего элемента и вычислить некоторое значение
+            return accumulator;
+          }, accumulator);
+        });
+        prev_level = current_level;
+        current_level = {};
+      }
+      //если есть функция аккумулирования, то вернуть наакумулированное, иначе вернуть полученное дерево
+      //но пока что если есть наакумулированное, то его и вернуть
+      return (!accumulator ? treeobj : accumulator);
+    }
+    
+    //разрешено ли провести линию отсюда
+    function drop0(s){
+      return true;//s.type >= 0 && s.type <= 2;
+    }
+    
+    //вернуть узел, отпущенный на воздухе
+    function drop1(s, t){
+      var h;
+      if(s.type >= 0 && s.type <= 2){
+        h = s;
+      }
+      
+      if(dist(s, t) < 350 && !!h){
+        var obj = tree(s);
+        if(obj[4] >= 2 && obj[6] >= 1 && obj[8] >= 2 && obj[11] >= 1){
+          obj.nodes.forEach(function(n){
+            deleteLink(n, null);
+            deleteNode(n);
+            redraw();
+          });
+          return {x:t.x, y:t.y, type:0};
+        } else return null;
+      } else {
+        return null;
+      }
+    }
+    
+    //вернуть узел, на котором отпустили
+    function drop2(s, t){
+      var lt = (s.type > t.type ? t : s),
+        gt = (s.type < t.type ? t : s);
+      
+      if(!!linktypes[lt.type] && !!linktypes[lt.type][gt.type] && dist(s, t) < 350){
+        return t;
+      } else {
+        return null;
+      }
+    }
+    
+    //вернуть узел, отпущенный на связи
+    function drop3(s, l, t){
+      if(dist(s, t) < 350 && s.type >= 0 && s.type <= 2){
+        return {x: t.x, y: t.y, type: 3};
+      } else {
+        return null;
+      }
+    }
+    
+    //****события***********************************************************
+    //по событиям в представлении мы меняем данные в модели, т.е. это часть контроллера
+    
+    function mousedown(d){
+      //Если нет d - Значит нет элемента, по которому щелкнули
+      //значит в этом случае начать перетаскивание в любом случае
+      if(!d){
+        ;
+      } else if(!!d.index || d.index === 0){
+        if(!!model.selected.node && d.index == model.selected.node.index){
+          model.selected.node = null;
+        } else {
+          model.selected.node = d;
+        }
+        model.selected.link = null;
+        if(drop0(d) && d3.event && d3.event.ctrlKey){
+          model.selected.node = d;
+          
+          d3.select(this).on('.drag', null);
+          
+          dragline(true, model.selected.node.x, model.selected.node.y, model.selected.node.x, model.selected.node.y);
+        }
+        redraw();
+      } else if(!!d.source && !!d.target){
+        if(!!model.selected.link
+        && d.source.index == model.selected.link.source.index
+        && d.target.index == model.selected.link.target.index){
+          model.selected.link = null;
+        } else {
+          model.selected.link = d;
+        }
+        model.selected.node = null;
+        redraw();
+      }
+    }
+
+    function mousemove(){
+      var dx, dy;
+      if (!!model.selected.node && model.dragline.active){
+        dy = d3.mouse(this),
+        dx = dy[0] > model.selected.node.x ? dy[0] - 3 : dy[0] + 3,
+        dy = dy[1] > model.selected.node.y ? dy[1] - 3 : dy[1] + 3;
+        dragline(null, model.selected.node.x, model.selected.node.y, dx, dy);
+      }
+    }
+    
+    function mouseup(d){
+      if(!!model.selected.node && model.selected.node != d){
+        
+        dragline(false, 0, 0, 0, 0);
+        
+        d3.select(view.nodes[0][model.selected.node.index]).on('.drag', null).call(force.drag);
+        
+        if(!d){
+          
+          model.next.node = d3.mouse(this);
+          //событие "до отпускания" - вернуть, можно ли отпустить для данного объекта
+          model.next.node = drop1(model.selected.node, {x: model.next.node[0], y: model.next.node[1]});
+          //событие "после отпускания" - узел создан, связь с ним установлена, можно дополнительно модифицировать
+          if(!!model.next.node) model.nodes.push(model.next.node);
+          console.log('отпущен на воздухе');
+          
+        } else if(!!d.index || d.index === 0){
+          
+          //событие "до связывания" - вернуть, разрешено ли установить связь мезду узлами
+          model.next.node = drop2(model.selected.node, d);
+          //если связалось - событие "после связывания" - после связи можно модифицировать дерево
+          console.log('отпущен на узле');
+          
+        } else if(!!d.source && !!d.target){
+          
+          model.selected.link = d;
+          //событие "до отпускания" - вернуть, можно ли вклиниться в эту связь для данного узла
+          model.next.node = d3.mouse(this);
+          model.next.node = drop3(model.selected.node, model.selected.link, {x: model.next.node[0], y: model.next.node[1]});
+          //если да, то событие "после", которое позволит это дело модифицировать
+          
+          if(!!model.next.node){
+            model.nodes.push(model.next.node);
+            model.links.push({source: model.next.node, target: model.selected.link.source});
+            model.links.push({source: model.next.node, target: model.selected.link.target});
+          }
+          console.log('отпущен на связи');
+        }
+        
+        if(!!model.next.node){
+          model.selected.link = {source: model.selected.node, target: model.next.node}
+          model.links.push(model.selected.link);
+          if(!!model.next.node.index || model.next.node.index === 0){
+            model.selected.node = model.next.node;
+            model.selected.link = null;
+          }
+          redraw();
+          if(!!d && !!d.source && !!d.target){
+            deleteLink(d.source.index, d.target.index);
+            redraw();
+          }
+        }
+      }
+      model.selected.node = null;
+      model.next.node = null;
+      model.selected.link = null;
+    }
+    
+    function tick(){
+      //срабатывает при драге и по инерции, можно использовать, чтобы индексировать расстояния между узлами
+      if (!!model.selected.node){
+        dragline(null, model.selected.node.x, model.selected.node.y);
+      }
+      
+      view.links.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+      view.nodes.attr("transform", function(d){
+        return "translate(" + d.x + "," + d.y + ")";
+      });
+    }
+    
+    function dblclick(d){ d3.select(this).classed("fixed", d.fixed = !d.fixed); }
+    
+    var t0 = 0, t1 = 0, kc = 0;
+    function keydown(){
+      if(model.selected.node && (d3.event.keyCode == 8 || d3.event.keyCode == 46)){
+        deleteLink(model.selected.node.index, null);
+        deleteNode(model.selected.node.index);
+        model.selected.node = null;
+        redraw();
+      } else if(model.selected.link && (d3.event.keyCode == 8 || d3.event.keyCode == 46)){
+        deleteLink(model.selected.link.source.index, model.selected.link.target.index);
+        model.selected.link = null;
+        redraw();
+      }
+      
+      if(!t0){
+        t0 = performance.now();
+        kc = d3.event.keyCode;
+      } else {
+        t1 = performance.now();
+        if(kc == d3.event.keyCode && t1 - t0 > 80 && t1 - t0 < 200) doublekeydown(d3.event);
+        t0 = 0; t1 = 0; kc = 0;
+      }
+    }
+    
+    //событие doublekeydown
+    function doublekeydown(event){
+      if(model.selected.node && (d3.event.keyCode >= 37 && d3.event.keyCode <= 40)){
+        var dx = (d3.event.keyCode == 37 ? -10 : (d3.event.keyCode == 39 ? 10 : 0)),
+          dy = (d3.event.keyCode == 38 ? -10 : (d3.event.keyCode == 40 ? 10 : 0));
+        
+        var tn = model.nodes.reduce(function(prev, cur, i, arr){
+          var d = dist(model.selected.node, cur),
+          b = cur.y > model.selected.node.y && dy > 0;
+          b = b || cur.y < model.selected.node.y && dy < 0;
+          b = b || cur.x > model.selected.node.x && dx > 0;
+          b = b || cur.x < model.selected.node.x && dx < 0;
+          b = b && !model.selected.node.links[cur.index] && model.selected.node.links[cur.index] !== 0;
+          if(b && d < prev[1] && drop2(model.selected.node, cur)) return [i, d]; else return prev;
+        }, [null, 1E5]);
+        if(!!tn[0] || tn[0] === 0){
+          console.log([model.selected.node.index, tn[0]]);
+          model.links.push({source:model.selected.node, target:model.nodes[tn[0]]});
+        }
+      }
+      redraw();
+    }
+    
+    //*****делается контроллером при изменении модели************************************
+    
+    // redraw force layout
+    function redraw(){
+      
+      //контроллер по модели создет список того, что надо поменять в представлении
+      view.nodes = view.nodes.data(model.nodes);
+      
+      //новое в модели надо создать и в представлении
+      var el = view.nodes.enter().append("g")
+      .attr("class", "node")
+      .on("dblclick", dblclick)
+      .on("mousedown", mousedown)
+      .on("mouseup", mouseup)
+      .call(force.drag);
+      
+      el.each(function(d, i){
+        var g = d3.select(this);
+        d.links = {};
+        if(d.type >= 0 && d.type <= 2){
+          g.append('path').attr('d', "m0,-15 3,8.5h9l-7,6.5 2.5,8.5-7.5-5-7.5,5 2.5-8.5-7-5.5h9z").attr('stroke', get_color);
+        } else {
+          g.append("circle").attr('stroke', get_color).attr("r", 0).transition().attr("r", 10);
+        }
+      });
+      
+      el.insert("text").attr("dx", "-1.3em").attr("dy", "1.45em").text(get_text).attr("opacity", 0).transition().attr("opacity", 1);
+      el.attr("fill", get_color);
+      
+      //в модели сменилось выделение - отразить в представлении
+      view.nodes.classed("selected", function(d){ return !!model.selected.node ? d.index === model.selected.node.index : false; });
+      //отображать изменение класса, типа, а потом переделать эти изменения только для выбранного узла
+      
+      //старое в модели пропадает а представлении с эффектом
+      el = view.nodes.exit();
+      el.selectAll('circle').transition().attr("r", 0);
+      el.selectAll('text').transition().attr("opacity", 0);
+      el.transition().remove();
+      
+      //в связях тоже самое
+      view.links = view.links.data(model.links);
+
+      view.links.enter().insert("line", ".node")
+      .attr("class", "link")
+      .attr("stroke", function(d){ return d.source.type == d.target.type ? dic[d.source.type][1] : '#999'; })
+      .on("mousedown", mousedown)
+      .on("mouseup", mouseup)
+      .each(function(d, i){
+        var swap;
+        if(d.source.index > d.target.index){
+          swap = d.source;
+          d.source = d.target;
+          d.target = swap;
+        }
+        d.source.links[d.target.index] = i;
+        d.target.links[d.source.index] = i;
+      });
+      
+      view.links.classed("selected", function(d){ return !!model.selected.link ? d.source.index == model.selected.link.source.index && d.target.index == model.selected.link.target.index : false; });
+      
+      view.links.exit()
+      .each(function(d, i){
+        delete d.source.links[d.target.index];
+        delete d.target.links[d.source.index];
+      }).remove();
+
+      if(d3.event){ d3.event.preventDefault(); }
+      force.start();
+    }
+    
+    //*****функции контроллера*************************************************
+    //в ней изменяется модель и представление(и раз так, то надо бы и контроллер оповестить)
+    function deleteLink(source_index, target_index){
+      var last = (model.links.length - 1)>>>0;
+      
+      var toSplice = null;
+      if((!!source_index || source_index === 0) && (!!target_index || target_index === 0)){
+        toSplice = [model.nodes[source_index].links[target_index]];
+      } else if(!!source_index || source_index === 0){
+        toSplice = values(model.nodes[source_index].links);
+      } else if(!!target_index || target_index === 0){
+        toSplice = values(model.nodes[target_index].links);
+      }
+      
+      toSplice.sort(function(a, b){return b - a});
+      
+      toSplice.forEach(function(index){
+        model.links[last].source.links[model.links[last].target.index] = index;
+        model.links[last].target.links[model.links[last].source.index] = index;
+        
+        delete model.links[index].source.links[model.links[index].target.index];
+        delete model.links[index].target.links[model.links[index].source.index];
+        
+        var swap = model.links[index];
+        model.links[index] = model.links[last];
+        model.links[last] = swap;
+        
+        swap = view.links[0][index];
+        view.links[0][index] = view.links[0][last];
+        view.links[0][last] = swap;
+        
+        model.links.pop();
+        last--;
+      });
+    }
+    
+    function deleteNode(index){
+      var last = (model.nodes.length - 1)>>>0;
+      
+      model.nodes[last].index = index;
+      Object.keys(model.nodes[last].links).forEach(function(key){
+        model.nodes[key>>0].links[index] = model.nodes[last].links[key];
+        delete model.nodes[key>>0].links[last];
+      });
+      
+      model.nodes[index].index = last;
+      Object.keys(model.nodes[index].links).forEach(function(key){
+        delete model.nodes[key>>0].links[index];
+      });
+      
+      var swap = model.nodes[index];
+      model.nodes[index] = model.nodes[last];
+      model.nodes[last] = swap;
+      
+      view.nodes[0][index].index = last;
+      view.nodes[0][last].index = index;
+      
+      swap = view.nodes[0][index];
+      view.nodes[0][index] = view.nodes[0][last];
+      view.nodes[0][last] = swap;
+      
+      model.nodes.pop();
+    }
+    
+    redraw();
+    </script>
   </body>
 </html>
